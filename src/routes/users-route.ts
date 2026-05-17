@@ -1,5 +1,5 @@
 import { Elysia, t } from "elysia";
-import { registerUser, loginUser, getCurrentUser } from "../services/users-service";
+import { registerUser, loginUser, getCurrentUser, logoutUser } from "../services/users-service";
 
 export const usersRoute = new Elysia()
   .post(
@@ -77,6 +77,33 @@ export const usersRoute = new Elysia()
         return {
           status: "error",
           message: error.message || "User not found",
+          data: null,
+        };
+      }
+    }
+  )
+  .get(
+    "/api/users/logout",
+    async ({ headers, set }) => {
+      try {
+        const authorization = headers["authorization"];
+        if (!authorization || !authorization.startsWith("Bearer ")) {
+          throw new Error("Token not found");
+        }
+
+        const token = authorization.substring(7);
+        await logoutUser(token);
+
+        return {
+          status: "success",
+          message: "Logout success",
+          data: null,
+        };
+      } catch (error: any) {
+        set.status = 401;
+        return {
+          status: "error",
+          message: error.message || "Token not found",
           data: null,
         };
       }

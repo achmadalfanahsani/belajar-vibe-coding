@@ -111,3 +111,23 @@ export async function getCurrentUser(token: string) {
 
   return user;
 }
+
+export async function logoutUser(token: string) {
+  // 1. Cari session berdasarkan token
+  const existingSessions = await db
+    .select()
+    .from(sessions)
+    .where(eq(sessions.token, token));
+
+  const session = existingSessions[0];
+  if (!session) {
+    throw new Error("Token not found");
+  }
+
+  // 2. Hapus session dari database
+  await db
+    .delete(sessions)
+    .where(eq(sessions.token, token));
+
+  return true;
+}
