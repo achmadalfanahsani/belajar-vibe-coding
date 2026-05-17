@@ -1,5 +1,5 @@
 import { Elysia, t } from "elysia";
-import { registerUser, loginUser } from "../services/users-service";
+import { registerUser, loginUser, getCurrentUser } from "../services/users-service";
 
 export const usersRoute = new Elysia()
   .post(
@@ -53,5 +53,32 @@ export const usersRoute = new Elysia()
         email: t.String({ format: "email" }),
         password: t.String(),
       }),
+    }
+  )
+  .get(
+    "/api/users/current",
+    async ({ headers, set }) => {
+      try {
+        const authorization = headers["authorization"];
+        if (!authorization || !authorization.startsWith("Bearer ")) {
+          throw new Error("User not found");
+        }
+
+        const token = authorization.substring(7);
+        const currentUser = await getCurrentUser(token);
+
+        return {
+          status: "success",
+          message: "User current",
+          data: currentUser,
+        };
+      } catch (error: any) {
+        set.status = 401;
+        return {
+          status: "error",
+          message: error.message || "User not found",
+          data: null,
+        };
+      }
     }
   );

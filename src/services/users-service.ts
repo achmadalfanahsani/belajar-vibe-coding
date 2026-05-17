@@ -79,3 +79,35 @@ export async function loginUser(data: LoginUserData) {
 
   return { token };
 }
+
+export async function getCurrentUser(token: string) {
+  // 1. Cari session berdasarkan token
+  const existingSessions = await db
+    .select()
+    .from(sessions)
+    .where(eq(sessions.token, token));
+
+  const session = existingSessions[0];
+  if (!session) {
+    throw new Error("User not found");
+  }
+
+  // 2. Cari user berdasarkan userId pada session
+  const existingUsers = await db
+    .select({
+      id: users.id,
+      name: users.name,
+      email: users.email,
+      createdAt: users.createdAt,
+      updatedAt: users.updatedAt,
+    })
+    .from(users)
+    .where(eq(users.id, session.userId));
+
+  const user = existingUsers[0];
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  return user;
+}
